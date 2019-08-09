@@ -3,7 +3,7 @@ import warnings
 import cv2
 import imutils
 import math
-from utility.gesture_detection import gestureDetect
+from utility.gesture_detection import GestureDetect
 
 # get the reference to the webcam
 camera = cv2.VideoCapture(0)
@@ -15,8 +15,6 @@ top, right, bottom, left = 10, 350, 225, 590
 # initialize num of frames
 
 start_recording = False
-
-gesturedetector = gestureDetect()
 
 if __name__ == '__main__':
     while(True):
@@ -32,7 +30,7 @@ if __name__ == '__main__':
         roi = frame[top:bottom, right:left]
 
         if start_recording:
-            cur_gesture = gesturedetector.grdetect(roi)
+            cur_gesture = GestureDetect.grdetect(roi)
             print(cur_gesture)
 
         # draw the segmented hand
