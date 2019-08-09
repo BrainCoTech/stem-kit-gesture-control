@@ -6,7 +6,6 @@ import pickle
 
 if __name__ == '__main__':
     training_data = {}
-
     # get the reference to the webcam
     camera = cv2.VideoCapture(0)
     camera.set(cv2.CAP_PROP_EXPOSURE, -4)
