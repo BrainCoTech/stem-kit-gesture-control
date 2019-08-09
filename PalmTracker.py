@@ -11,8 +11,7 @@
 import cv2
 import imutils
 import numpy as np
-import pandas as pd
-import pickle
+
 
 
 # change this value before running
@@ -35,7 +34,7 @@ def run_avg(image, aWeight):
     # compute weighted average, accumulate it and update the background
     cv2.accumulateWeighted(image, bg, aWeight)
 
-def segment(image, threshold=15):
+def segment(image, threshold=25):
     global bg
     # find the absolute difference between background and current frame
     diff = cv2.absdiff(bg.astype("uint8"), image)
@@ -45,8 +44,6 @@ def segment(image, threshold=15):
                                 threshold,
                                 255,
                                 cv2.THRESH_BINARY)[1]
-
-    # thresholded = cv2.Canny(diff, 40, 100)
 
     # get the contours in the thresholded image
     (cnts, _) = cv2.findContours(thresholded.copy(),
@@ -61,10 +58,7 @@ def segment(image, threshold=15):
         segmented = max(cnts, key=cv2.contourArea)
         return (thresholded, segmented)
 
-def collect_data():
-
-    global training_data 
-
+def main():
     # initialize weight for running average
     aWeight = 0.5
 
@@ -122,9 +116,18 @@ def collect_data():
 
                     # draw the segmented region and display the frame
                     cv2.drawContours(clone, [segmented + (right, top)], -1, (0, 0, 255))
-
                     if start_recording:
-                        training_data[gesture_name].append(thresholded)
+
+                        # Mention the directory in which you wanna store the images followed by the image name
+                        
+                        cv2.imwrite("Dataset/PaperTest/paper_" + str(image_num) + '.png', thresholded)
+#                        cv2.imwrite("Dataset/PaperImages/paper_" + str(image_num) + '.png', thresholded)
+#
+#                        cv2.imwrite("Dataset/RockTest/rock_" + str(image_num) + '.png', thresholded)
+#                        cv2.imwrite("Dataset/RockImages/rock_" + str(image_num) + '.png', thresholded)
+#
+#                        cv2.imwrite("Dataset/ScissorTest/scissor_" + str(image_num) + '.png', thresholded)
+#                        cv2.imwrite("Dataset/ScissorImages/scissor_" + str(image_num) + '.png', thresholded)
 
                         image_num += 1
                         print(image_num)
@@ -147,24 +150,14 @@ def collect_data():
                 break
         
             if keypress == ord("s"):
-                gesture_name = input('gesture_name: ')
-                training_data[gesture_name] = training_data.get(gesture_name, [])
                 start_recording = True
-
             if keypress == ord("v"):
-                with open('./training_data.pickle', 'wb') as handle:
-                    pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-                    print('save data success')
                 start_recording = False
                     
         else:
             print("[Warning!] Error input, Please check your(camra Or video)")
             break
-    return
-
-if __name__ == '__main__':
-    training_data = {}
-    collect_data()
+main()
 
 # free up memory
 camera.release()
