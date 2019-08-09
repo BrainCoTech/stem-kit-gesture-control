@@ -14,7 +14,6 @@ if __name__ == '__main__':
     top, right, bottom, left = 10, 350, 225, 590
 
     # initialize num of frames
-    num_frames = 0
     image_num = 0
 
     start_recording = False

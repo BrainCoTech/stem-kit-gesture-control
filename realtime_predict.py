@@ -13,7 +13,7 @@ camera.set(cv2.CAP_PROP_EXPOSURE, 0.25)
 top, right, bottom, left = 10, 350, 225, 590
 
 # initialize num of frames
-num_frames = 0
+
 start_recording = False
 
 gesturedetector = gestureDetect()
