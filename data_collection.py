@@ -24,34 +24,28 @@ if __name__ == '__main__':
         # get the current frame
         (grabbed, frame) = camera.read()
         if (grabbed == True):
-
             # # resize the frame
             frame = imutils.resize(frame, width=700)
-
             # flip the frame so that it is not the mirror view
             frame = cv2.flip(frame, 1)
-
             # clone the frame
             clone = frame.copy()
-
             # get the height and width of the frame
             (height, width) = frame.shape[:2]
-
             # get the ROI
             roi = frame[top:bottom, right:left]
-            # print(roi)
+            # draw the segmented hand
+            cv2.rectangle(clone, (left, top), (right, bottom), (0,255,0), 2)
 
             if start_recording:
                 training_data[gesture_name].append(roi)
                 image_num += 1
                 print(image_num)
 
-            # draw the segmented hand
-            cv2.rectangle(clone, (left, top), (right, bottom), (0,255,0), 2)
-
             # display the frame with segmented hand
             cv2.imshow("Video Feed", clone)
             cv2.imshow("data", roi)
+
 
             # observe the keypress by the user
             keypress = cv2.waitKey(1) & 0xFF

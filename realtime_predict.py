@@ -18,7 +18,7 @@ start_recording = False
 
 gesturedetector = gestureDetect()
 
-if __name == '__main__':
+if __name__ == '__main__':
     while(True):
         # get the current frame
         (grabbed, frame) = camera.read()
@@ -48,6 +48,4 @@ if __name == '__main__':
         if keypress == ord("s"):
             start_recording = True
 
-    camera.release()
-
-    
+camera.release()
