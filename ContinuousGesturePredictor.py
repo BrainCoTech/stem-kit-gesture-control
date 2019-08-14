@@ -12,7 +12,7 @@ import time
 
 #how to check your serial port num?
 #open arudino ide and check the serial port num (appears on the lower right corner)
-serial_port_num ='14240'
+serial_port_num ='1460'
 
 #testing mode
 _USE_ARDUINO = True
