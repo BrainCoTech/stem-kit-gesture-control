@@ -1,23 +1,27 @@
 #include <Servo.h>
+// STD libs
 #include <stdarg.h>
 #include <stdio.h>
-#include <boarddefs.h>
 
+#include <boarddefs.h>
+// Ardruino libs
 #include <IRremote.h>
 #include <IRremoteInt.h>
 #include <ir_Lego_PF_BitStreamEncoder.h>
+#define LED_PIN 12
+#define RECV_PIN 13
 
-int LED_pin=12;
-int RECV_pin=13;
-IRrecv irrecv(RECV_pin); // Initiate IR signal input
+IRrecv irrecv(RECV_PIN); // Initiate IR signal input
+
+// TODO: Local variable
 decode_results results; // Save signal structure
 word HEXcode;  //HEXcode for IR remote control
 unsigned long time_release;
+int incomingByte = 0; // for incoming serial data
 
+Servo finger_servos[5];
 
-Servo finger_servo[5];
-
-int finger_pin[5]={5,6,9,10,11};   //corresponding servo for the fingers
+int finger_pins[5]={5,6,9,10,11};   //corresponding servo for the fingers
 int finger_zero_state_angle[]={0,0,0,180,180};
 int finger_state[5]={1,1,1,1,1}; // 1 is held out the finger
 
@@ -27,26 +31,19 @@ enum gesture{paper ='0', rock = '1', scissor = '2'};
 
 
 //================================================================================================
-void  multi_motor_control(int finger[], int deg[] ,int num_finger )
+void multi_motor_control(int finger[], int deg[] ,int num_finger )
 {
     for(int f=0; f<num_finger; f++)
     { 
       int finger_idx=finger[f]-1;
       
-      finger_servo[ finger_idx ].write(deg[ f ]);
+      finger_servos[ finger_idx ].write(deg[ f ]);
     }    
   
   // state_update
   for(int f=0; f<num_finger; f++)
-  {      
-     if ( deg[f]== finger_zero_state_angle[finger[f]-1] )
-     {
-        finger_state[finger[f]-1]=1;
-     }
-     else
-     {
-        finger_state[finger[f]-1]=0;
-     }
+  {   
+    finger_state[finger[f]-1] = deg[f] != finger_zero_state_angle[finger[f]-1];
   }
   state_print();
 }
@@ -106,20 +103,22 @@ void  multi_motor_state_control(int finger[], int state[] ,int num_finger )
 //================================================================================================
 void state_print()
 {
-  String state_show;
-  for(int i=0;i<=4;i++)
+  String states_str;
+  for(int i = 0; i < 5; i++)
   {
-    if (finger_state[i]==1)
+    if (finger_state[i])
     {
-      state_show=state_show+"|| ";
+      //mean stretch
+      states_str += "| ";
     }
     else 
     {
-      state_show=state_show+"_ ";
+      //mean contraction
+      states_str += "_ ";
     }
   }
 
-  Serial.println(state_show);
+  Serial.println(states_str);
 }
 
 //================================================================================================
@@ -153,15 +152,15 @@ void rock_paper_scissor_game() {
  if(Serial.available() > 0 ){
   // if receive data
   
-    serialData = Serial.read();
+    incomingByte = Serial.read();
     
-    if(serialData == paper){
+    if(incomingByte == paper){
         gesture_paper();
        
-    }else if (serialData == rock) {       
+    }else if (incomingByte == rock) {       
         gesture_rock();
         
-    }else if(serialData = scissor){
+    }else if(incomingByte = scissor){
         gesture_scissor();
     }
 
@@ -176,7 +175,7 @@ void IR_remote_control(){
   {
       time_release=millis();
       //Serial.println(results.value, HEX);
-      HEXcode= results.value, HEX;
+      HEXcode = results.value, HEX;
       //Serial.println(HEXcode);
   
       
@@ -290,9 +289,9 @@ void IR_remote_control(){
 void setup() {
   for (int i = 0; i<5; i++)
   {
-    finger_servo[i].attach(finger_pin[i]);
+    finger_servos[i].attach(finger_pins[i]);
   }
-  pinMode(RECV_pin,OUTPUT);
+  pinMode(RECV_PIN,OUTPUT);
     
   Serial.begin(9600);//connect to serial port, baud rate is 9600
   
@@ -300,17 +299,19 @@ void setup() {
   //zeroing the motors
   for( int f=0; f<5 ; f++)
   {
-    finger_servo[ f ].write(finger_zero_state_angle[ f ]);
+    finger_servos[ f ].write(finger_zero_state_angle[ f ]);
     
   }
   delay(10);
 
+  gesture_scissor();
+  
   irrecv.blink13(true); // if signal is received, then pin13 led light blink
   irrecv.enableIRIn(); // enable the singal receival function
-  pinMode(LED_pin,OUTPUT);
+  pinMode(LED_PIN,OUTPUT);
   time_release=millis();
 
-  digitalWrite(LED_pin,HIGH);
+  digitalWrite(LED_PIN,HIGH);
   digitalWrite(A0,HIGH);
   Serial.println("The Hand is ready!!" ) ;
   state_print();
@@ -335,7 +336,7 @@ void loop()
 
 
   //communicate with python
-  rock_paper_scissor_game(); 
+//  rock_paper_scissor_game(); 
 
 
   //control by IR remote
