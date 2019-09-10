@@ -8,17 +8,30 @@ from utility.gesture_detection import *
 from utility.frame_read import read_frame
 import mxnet as mx
 import warnings
+import pickle
+from utility.neural_network import *
+
+
+# # Arudino
+# import serial
+# #open arudino ide and check the serial port num (appears on the lower right corner)
+# serial_port_num ='1460'
+# ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
+
+# gesture
+paper = 0b00000000
+rock = 0b11111000
+scissor = 0b10011000
 
 # get the reference to the camera
 camera = cv2.VideoCapture(0)
-camera.set(cv2.CAP_PROP_EXPOSURE, 0.25)
-
-# region of interest (ROI) coordinates, put hands in this region to record or read gesture
-top, right, bottom, left = 10, 350, 225, 590
 
 # initialize start parameter, if 'start_recording = True'. start reading camera and prediction
 start_image_processing = False
 start_CNN = False
+collecting_data = False
+training_model = False
+CNN_prediction =False
 
 # import CNN model 
 symbol_file = './gesture_model-symbol.json'
@@ -28,48 +41,89 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     net = mx.gluon.SymbolBlock.imports(symbol_file, ['data'], params_file)
 
+img_num = 0
+training_data = {'scissor':[], 'rock':[], 'paper':[]}
+img_num_base = 10
+
 if __name__ == '__main__':
+
     while(True):
-        # get video frame "clone"
         # get region of interest "roi"
-        clone, roi = read_frame(camera, top, right, bottom, left)
+        roi = read_frame(camera)
 
         if start_image_processing:
             #  index number equals to the number of acute angle for gesture 
-            _gestures = ['rock', 'scissor', 'scissor' , 'unknown', 'paper', 'paper']
-
-            copy = roi.copy()
+            gestures = ['rock', 'scissor', 'scissor' , 'unknown', 'paper', 'paper']
             # detect gesture based on skin
-            thresh = detect_bodyskin(copy)
+            thresh = detect_bodyskin(roi)
             # show segmented gesture
             cv2.imshow("gesture_threshold", thresh)
             # get a list of contours for gesture
             contours = get_contours(thresh.copy())
+            if len(contours) == 0:
+                pass
             # find the contour which have largest area in contour list
-            largecont = max(contours, key = lambda contour: cv2.contourArea(contour)) 
-            # get a convex contour of hand
-            hull = cv2.convexHull(largecont, returnPoints = False)
-            # return the number of acute angle
-            defects = cv2.convexityDefects(largecont, hull)
-            # return gesture name
-            # if verbose = Ture, auxiliary lines and auxiliary points using for prediction will show; otherwise, not
-            if defects is not None:
-                img, ndefects = get_defects_count(roi, largecont, defects, verbose = True)
-                print(_gestures[ndefects]) if ndefects < len(_gestures) else 'nothing' 
+            else:
+                largecont = max(contours, key = lambda contour: cv2.contourArea(contour)) 
+
+                # get a convex contour of hand
+                hull = cv2.convexHull(largecont, returnPoints = False)
+                defects = cv2.convexityDefects(largecont, hull)
+                # get convex contour and return gesture name
+                # if verbose = Ture, auxiliary lines and auxiliary points using for prediction will show; otherwise, not
+                if defects is not None:
+                    img, ndefects = get_defects_count(roi, largecont, defects, verbose = True)
+                    print(gestures[ndefects]) if ndefects < len(gestures) else 'unkonwn' 
 
         elif start_CNN:
             # a list of all classes of gestures
             label = ['scissor', 'rock', 'paper']
+            text = ["Press any key to start collecting SCISSOR gesture.", "Press any key to start collecting ROCK gesture.", "Press any key to start collecting PAPER gesture."]
             # preprocess image of gesture
-            img_mask = detect_bodyskin(roi)
+            img = detect_bodyskin(roi)
             # show preprossed image
-            cv2.imshow('img_mask', img_mask)
-            # put preprocessed image into CNN and get probability array in shape (1, number of class)
-            outputs = mx.nd.softmax(net(mx.nd.array(img_mask.reshape(1,1,215,240)))).asnumpy()
-            # label index 
-            gesture = np.argmax(outputs[0])
-            # print the class 
-            print(label[gesture])
+            cv2.imshow('img_mask', img)
+            # get a list of contours for gesture
+            contours = get_contours(img.copy())
+            if len(contours) == 0:
+                pass
+            # find the contour which have largest area in contour list
+            else:
+                largecont = max(contours, key = lambda contour: cv2.contourArea(contour))
+            # down sample image
+            img = down_sample(img, largecont)
+            cv2.imshow('down_sample_img', img)
+            if collecting_data:
+                if img_num%img_num_base == 0:
+                    input(text[int(img_num/100)])
+                elif img_num//img_num_base == 0:
+                    training_data[label[0]].append(img)
+                    print('Collecting SCISSOR data: {}'.format(img_num))
+                elif img_num//img_num_base == 1:
+                    training_data[label[1]].append(img)
+                    print('Collecting ROCK data: {}'.format(img_num-img_num_base))
+                elif img_num//img_num_base == 2:
+                    training_data[label[2]].append(img)
+                    print('Collecting PAPER data: {}'.format(img_num-img_num_base*2))
+            img_num += 1
+
+            if training_model:
+                input("Press any key to start model trianing.")
+                train_data = generate_data(training_data, label)
+                # CNN network
+                net, accuracy = train_model(train_data) 
+                print(accuracy) 
+                training_model = False
+                CNN_prediction = True
+
+            if CNN_prediction: 
+                # put preprocessed image into CNN and get probability array in shape (1, number of class)
+                outputs = mx.nd.softmax(net(mx.nd.array(img.reshape(1,1,128,128)))).asnumpy()
+                # label index 
+                gesture = np.argmax(outputs[0])
+                # print the class 
+                print(label[gesture])
+                # ser.write(bytes(label[gesture]))
 
         # observe the keypress by the user
         keypress = cv2.waitKey(1) & 0xFF
@@ -86,7 +140,14 @@ if __name__ == '__main__':
             elif method_choose == 'c':
                 start_image_processing = False
                 start_CNN = True
-
-
+                collecting_data = True
+        
+        if img_num == 3*img_num_base:
+            # with open('./trainingdata.pickle', 'wb') as handle:
+            #     pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            # print('Successfully Saving Data')
+            collecting_data = False
+            training_model = True
+                    
 # camera off
 camera.release()

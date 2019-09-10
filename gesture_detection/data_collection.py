@@ -1,7 +1,6 @@
 import cv2
 import imutils
 import numpy as np
-import pandas as pd
 import pickle
 
 if __name__ == '__main__':
