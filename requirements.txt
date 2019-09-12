@@ -6,3 +6,5 @@ opencv-python==4.1.0.25
 tflearn==0.3.2
 imutils==0.5.2
 pyserial==3.4
+mxnet==1.5.0
+imgaug==0.2.9
