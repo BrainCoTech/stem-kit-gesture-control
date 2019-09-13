@@ -102,7 +102,7 @@ def get_defects_count(img, contour, defects, verbose):
                 cv2.circle(img, tuple(end), 3, (125,125,125), -1)
         if verbose:
             cv2.line(img, tuple(beg), tuple(end), (255,0,0), 1) 
-            cv2.imshow('img', img)     
+
     return img, ndefects
 
 def preprocess_cnn_img(roi):
@@ -114,5 +114,5 @@ def preprocess_cnn_img(roi):
         largecont = max(contours, key = lambda contour: cv2.contourArea(contour))
     # down sample image
     img = down_sample(img, largecont)
-    # cv2.imshow('down_sample_img', img)
+ 
     return img
