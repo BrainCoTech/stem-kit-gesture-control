@@ -105,4 +105,15 @@ def get_defects_count(img, contour, defects, verbose):
             cv2.imshow('img', img)     
     return img, ndefects
 
+def preprocess_cnn_img(roi):
+    # preprocess image of gesture
+    img = detect_bodyskin(roi)   
+    # get a list of contours for gesture
+    contours = get_contours(img.copy())
+    if len(contours) != 0:
+        largecont = max(contours, key = lambda contour: cv2.contourArea(contour))
+    # down sample image
+    img = down_sample(img, largecont)
+    # cv2.imshow('down_sample_img', img)
+    return img
 
