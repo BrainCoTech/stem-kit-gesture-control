@@ -3,60 +3,72 @@
 
 # import packages
 import cv2
-from image_processing_method import image_processing_method_result
-from cnn import cnn_method
 import serial
+from image_processing_method import image_processing_func
+from utility.frame_read import read_frame
 
 
-
-_USE_ARDUINO = True
-if _USE_ARDUINO:
-    serial_port_num ='14240'
-    ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
-
-
-
-# get the reference to the camera
-camera = cv2.VideoCapture(0)
-
+_USE_ARDUINO = False
 
 # gesture
-paper = 0b00000000
-rock = 0b11111000
-scissor = 0b10011000
-gesture_names = [paper, rock, scissor]
+PAPER = 0b00000000
+ROCK = 0b11111000
+SCISSOR = 0b10011000
+gesture_names = [PAPER, ROCK, SCISSOR]
+       
+should_quit = False
 
-img_num = 0
+from enum import Enum
+class Modes(Enum):
+    unstarted = 0
+    contours = 1
+    cnn = 2
 
-if __name__ == '__main__':
+mode = Modes.unstarted
+             
+def select_mode():
     
-    
-    while(True):
-    
-        keypress = cv2.waitKey(1) & 0xFF
+    keypress = cv2.waitKey(1) & 0xFF
+    if keypress == ord('q'):
+        should_quit = True
 
-        if keypress == ord("q"):
-            break
+    elif keypress == ord('i'):
+        mode = Modes.contours
         
-        if keypress == ord("i"):
-            cur_gesture_index = image_processing_method()
-            res = gesture_names[cur_gesture_index]
-                
-        elif keypress == ord("c"):
-            collecting_data = input('Collecting data or not, input True or False:')    
-            if collecting_data == 'True':
-                data = collect_data(img)
-            img_num += 1
-            cur_gesture_index = cnn_method(camera, collecting_data, img_num)
-            res = gesture_names[cur_gesture_index]
-            
-        if(_USE_ARDUINO):  
-
-            ser.write(res)
-
+    elif keypress == ord('c'):
+        mode = Modes.cnn
+        
+def send_to_hand(res):
+    serial_port_num ='14240'
+    ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
+    ser.write(res)
 
     
 
-                    
-# camera off
-camera.release()
+if __name__ == "__main__":
+
+    camera = cv2.VideoCapture(0)
+    cv2.namedWindow("Video",0)
+
+    while(not should_quit):
+
+        roi = read_frame(camera)
+        select_mode()
+            
+        if mode is Modes.contours:
+            index, img = image_processing_func(roi)
+            res =  gesture_names[index]
+            
+        elif mode is Modes.cnn:
+            print("cnn")
+        else: # unstarted
+            img = read_frame(camera)
+
+        if _USE_ARDUINO:
+            send_to_hand(res)    
+        
+        cv2.imshow("Video", img)
+        
+    camera.release()
+    cv2.destroyAllWindows()
+

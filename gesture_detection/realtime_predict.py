@@ -33,6 +33,15 @@ collecting_data = False
 training_model = False
 CNN_prediction =False
 
+# import CNN model 
+symbol_file = './gesture_model-symbol.json'
+params_file = './gesture_model-0000.params'
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    net = mx.gluon.SymbolBlock.imports(symbol_file, ['data'], params_file)
+
+
 img_num = 0
 training_data = {'scissor':[], 'rock':[], 'paper':[]}
 img_num_base = 10
@@ -46,6 +55,7 @@ if __name__ == '__main__':
         if start_image_processing:
             #  index number equals to the number of acute angle for gesture 
             gestures = ['rock', 'scissor', 'scissor' , 'unknown', 'paper', 'paper']
+
             # detect gesture based on skin
             thresh = detect_bodyskin(roi)  # TODO: rename
             # show segmented gesture
