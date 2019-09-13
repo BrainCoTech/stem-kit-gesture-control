@@ -16,32 +16,28 @@ ROCK = 0b11111000
 SCISSOR = 0b10011000
 gesture_names = [PAPER, ROCK, SCISSOR]
        
-           
-BREAK_LOOP = 0
-IMAGE_PROCESSING = 1
-CNN = 2
+should_quit = False
 
+from enum import Enum
+class Modes(Enum):
+    unstarted = 0
+    contours = 1
+    cnn = 2
+
+mode = Modes.unstarted
              
-def choose_method(cur_method_choose):
+def select_mode():
     
     keypress = cv2.waitKey(1) & 0xFF
-    if keypress == ord('q'):  
-        method_choose = BREAK_LOOP
+    if keypress == ord('q'):
+        should_quit = True
 
     elif keypress == ord('i'):
-        method_choose = IMAGE_PROCESSING
+        mode = Modes.contours
         
     elif keypress == ord('c'):
-        method_choose = CNN
+        mode = Modes.cnn
         
-    else:
-        method_choose = cur_method_choose
-    
-    return method_choose
-        
-
-        
-                    
 def send_to_hand(res):
     serial_port_num ='14240'
     ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
@@ -53,32 +49,26 @@ if __name__ == "__main__":
 
     camera = cv2.VideoCapture(0)
     cv2.namedWindow("Video",0)
-    method = None
 
-    while(True):
+    while(not should_quit):
 
         roi = read_frame(camera)
-        method = choose_method(method)
-        
-        if method == None:
-            img = read_frame(camera)
-
-        elif method == IMAGE_PROCESSING:
+        select_mode()
+            
+        if mode is Modes.contours:
             index, img = image_processing_func(roi)
             res =  gesture_names[index]
             
-        elif method == CNN:
+        elif mode is Modes.cnn:
             print("cnn")
-                        
-        elif method == BREAK_LOOP:
-            break
+        else: # unstarted
+            img = read_frame(camera)
 
-       
         if _USE_ARDUINO:
             send_to_hand(res)    
         
         cv2.imshow("Video", img)
-     
+        
     camera.release()
     cv2.destroyAllWindows()
 
