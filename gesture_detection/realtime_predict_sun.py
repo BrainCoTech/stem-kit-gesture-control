@@ -25,8 +25,10 @@ class Modes(Enum):
     cnn = 2
 
 mode = Modes.unstarted
-             
+     
 def select_mode():
+    global should_quit
+    global mode
     
     keypress = cv2.waitKey(1) & 0xFF
     if keypress == ord('q'):
@@ -38,6 +40,7 @@ def select_mode():
     elif keypress == ord('c'):
         mode = Modes.cnn
         
+        
 def send_to_hand(res):
     serial_port_num ='14240'
     ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
@@ -47,11 +50,12 @@ def send_to_hand(res):
 
 if __name__ == "__main__":
 
+    
     camera = cv2.VideoCapture(0)
     cv2.namedWindow("Video",0)
 
     while(not should_quit):
-
+        
         roi = read_frame(camera)
         select_mode()
             
@@ -62,12 +66,15 @@ if __name__ == "__main__":
         elif mode is Modes.cnn:
             print("cnn")
         else: # unstarted
-            img = read_frame(camera)
+            img = roi
 
+                
         if _USE_ARDUINO:
             send_to_hand(res)    
-        
+            
         cv2.imshow("Video", img)
+
+    
         
     camera.release()
     cv2.destroyAllWindows()
