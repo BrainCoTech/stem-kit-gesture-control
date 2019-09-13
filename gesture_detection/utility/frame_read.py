@@ -16,7 +16,7 @@ def read_frame(camera):
     # clone the frame
     clone = frame.copy()
     # get the region of interest (ROI)
-    roi = frame[_top:_top+_roi_size, _left+_roi_size:_left]
+    roi = frame[_top:_top+_roi_size, _left:_left+_roi_size]
     # draw a region to segment hand
     cv2.rectangle(clone, (_left, _top), (_left+_roi_size, _top+_roi_size), (0,255,0), 2)
     # display the frame 
