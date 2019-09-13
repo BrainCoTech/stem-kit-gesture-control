@@ -6,19 +6,24 @@ import cv2
 import serial
 from image_processing_method import image_processing_func
 from utility.frame_read import read_frame
+from enum import Enum
 
-
+_SERIAL_PORT_NUMBER ='14240'
 _USE_ARDUINO = False
 
+
+class Gesture(Enum):
+    unknown = -1
+    paper = 0
+    rock = 1
+    scissor = 2
+
 # gesture
-PAPER = 0b00000000
-ROCK = 0b11111000
-SCISSOR = 0b10011000
-gesture_names = [PAPER, ROCK, SCISSOR]
+_GESTURE_SERIAL_COMMANDS = {Gesture.paper: 0b00000000, Gesture.rock: 0b11111000, Gesture.scissor: 0b10011000}
        
 should_quit = False
 
-from enum import Enum
+
 class Modes(Enum):
     unstarted = 0
     contours = 1
@@ -41,16 +46,14 @@ def select_mode():
         mode = Modes.cnn
         
         
-def send_to_hand(res):
-    serial_port_num ='14240'
-    ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
-    ser.write(res)
+def write_gesture_to_serial_port(gesture):
+    if gesture is not Gesture.unknown:
+        ser = serial.Serial('/dev/cu.usbserial-' + _SERIAL_PORT_NUMBER, 9600)
+        ser.write(_GESTURE_SERIAL_COMMANDS[gesture])
 
-    
 
 if __name__ == "__main__":
 
-    
     camera = cv2.VideoCapture(0)
     cv2.namedWindow("Video",0)
 
@@ -58,10 +61,12 @@ if __name__ == "__main__":
         
         roi = read_frame(camera)
         select_mode()
-            
+        
+        gesture_detected = Gesture.unknown
+        
         if mode is Modes.contours:
             index, img = image_processing_func(roi)
-            res =  gesture_names[index]
+            gesture_detected =  Gesture(index)
             
         elif mode is Modes.cnn:
             print("cnn")
@@ -70,12 +75,10 @@ if __name__ == "__main__":
 
                 
         if _USE_ARDUINO:
-            send_to_hand(res)    
+            write_gesture_to_serial_port(gesture_detected)    
             
         cv2.imshow("Video", img)
 
-    
-        
     camera.release()
     cv2.destroyAllWindows()
 
