@@ -4,6 +4,7 @@
 # import packages
 import cv2
 from image_processing_method import image_processing_method_result
+from cnn import cnn_method
 import serial
 
 
@@ -25,9 +26,9 @@ rock = 0b11111000
 scissor = 0b10011000
 gesture_names = [paper, rock, scissor]
 
+img_num = 0
 
-
-def main():
+if __name__ == '__main__':
     
     
     while(True):
@@ -38,12 +39,16 @@ def main():
             break
         
         if keypress == ord("i"):
-            
-            res = gesture_names[image_processing_method_result()]
+            cur_gesture_index = image_processing_method()
+            res = gesture_names[cur_gesture_index]
                 
         elif keypress == ord("c"):
-            
-            res = gesture_names[cnn_method_result()]
+            collecting_data = input('Collecting data or not, input True or False:')    
+            if collecting_data == 'True':
+                data = collect_data(img)
+            img_num += 1
+            cur_gesture_index = cnn_method(camera, collecting_data, img_num)
+            res = gesture_names[cur_gesture_index]
             
         if(_USE_ARDUINO):  
 

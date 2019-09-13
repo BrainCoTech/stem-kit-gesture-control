@@ -33,14 +33,6 @@ collecting_data = False
 training_model = False
 CNN_prediction =False
 
-# import CNN model 
-symbol_file = './gesture_model-symbol.json'
-params_file = './gesture_model-0000.params'
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    net = mx.gluon.SymbolBlock.imports(symbol_file, ['data'], params_file)
-
 img_num = 0
 training_data = {'scissor':[], 'rock':[], 'paper':[]}
 img_num_base = 10
@@ -55,7 +47,7 @@ if __name__ == '__main__':
             #  index number equals to the number of acute angle for gesture 
             gestures = ['rock', 'scissor', 'scissor' , 'unknown', 'paper', 'paper']
             # detect gesture based on skin
-            thresh = detect_bodyskin(roi)
+            thresh = detect_bodyskin(roi)  # TODO: rename
             # show segmented gesture
             cv2.imshow("gesture_threshold", thresh)
             # get a list of contours for gesture
@@ -132,7 +124,7 @@ if __name__ == '__main__':
         if keypress == ord("q"):
             break
         # press "s" on keyboard, start prediction
-        if keypress == ord("s"):
+        if keypress == ord("s"):   # TODO: no s 
             method_choose = input('Press i to start image processing method, press c to start CNN method: ')
             if method_choose == 'i':
                 start_image_processing = True
@@ -141,7 +133,6 @@ if __name__ == '__main__':
                 start_image_processing = False
                 start_CNN = True
                 collecting_data = True
-        
         if img_num == 3*img_num_base:
             # with open('./trainingdata.pickle', 'wb') as handle:
             #     pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
