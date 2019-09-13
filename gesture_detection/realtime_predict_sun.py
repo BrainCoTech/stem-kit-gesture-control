@@ -3,55 +3,83 @@
 
 # import packages
 import cv2
-from image_processing_method import image_processing_method_result
 import serial
+from image_processing_method import image_processing_func
+from utility.frame_read import read_frame
 
 
-
-_USE_ARDUINO = True
-if _USE_ARDUINO:
-    serial_port_num ='14240'
-    ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
-
-
-
-# get the reference to the camera
-camera = cv2.VideoCapture(0)
-
+_USE_ARDUINO = False
 
 # gesture
-paper = 0b00000000
-rock = 0b11111000
-scissor = 0b10011000
-gesture_names = [paper, rock, scissor]
+PAPER = 0b00000000
+ROCK = 0b11111000
+SCISSOR = 0b10011000
+gesture_names = [PAPER, ROCK, SCISSOR]
+       
+           
+BREAK_LOOP = 0
+IMAGE_PROCESSING = 1
+CNN = 2
 
-
-
-def main():
+             
+def choose_method(cur_method_choose):
     
-    
-    while(True):
-    
-        keypress = cv2.waitKey(1) & 0xFF
+    keypress = cv2.waitKey(1) & 0xFF
+    if keypress == ord('q'):  
+        method_choose = BREAK_LOOP
 
-        if keypress == ord("q"):
-            break
+    elif keypress == ord('i'):
+        method_choose = IMAGE_PROCESSING
         
-        if keypress == ord("i"):
-            
-            res = gesture_names[image_processing_method_result()]
-                
-        elif keypress == ord("c"):
-            
-            res = gesture_names[cnn_method_result()]
-            
-        if(_USE_ARDUINO):  
+    elif keypress == ord('c'):
+        method_choose = CNN
+        
+    else:
+        method_choose = cur_method_choose
+    
+    return method_choose
+        
 
-            ser.write(res)
-
+        
+                    
+def send_to_hand(res):
+    serial_port_num ='14240'
+    ser = serial.Serial('/dev/cu.usbserial-' + serial_port_num, 9600)
+    ser.write(res)
 
     
 
-                    
-# camera off
-camera.release()
+if __name__ == "__main__":
+
+    camera = cv2.VideoCapture(0)
+    cv2.namedWindow("Video",0)
+    method = None
+
+    while(True):
+
+        roi = read_frame(camera)
+        method = choose_method(method)
+        
+        if method == None:
+            img = read_frame(camera)
+
+        elif method == IMAGE_PROCESSING:
+            index, img = image_processing_func(roi)
+            res =  gesture_names[index]
+            
+        elif method == CNN:
+            print("cnn")
+                        
+        elif method == BREAK_LOOP:
+            break
+
+       
+        if _USE_ARDUINO:
+            send_to_hand(res)    
+        
+        cv2.imshow("Video", img)
+     
+    camera.release()
+    cv2.destroyAllWindows()
+
+    
