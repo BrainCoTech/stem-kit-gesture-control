@@ -11,56 +11,59 @@ filename = 'trained_network'
 random_times = 1
 class_num = 3
 
+
 def augmentation(img):
     seq = iaa.Sequential([
-        iaa.Crop(px=(10, 50)), # crop images from each side by 0 to 16px (randomly chosen)
+        iaa.Crop(px=(10, 50)),  # crop images from each side by 0 to 16px (randomly chosen)
     ])
     aug_img = seq.augment_image(img)
     return aug_img
+
 
 def prepare_data(data):
     x_train, y_train = [], []
     for i in range(class_num):
         y = np.zeros((1, class_num))
-        y[0,i] = 1
+        y[0, i] = 1
         cur_label = Gesture(i).name
         cur_x = np.array(data[cur_label])
-        h,w = cur_x[0].shape
+        h, w = cur_x[0].shape
         for j in range(cur_x.shape[0]):
-            x_train.append(cur_x[j].reshape(1,h,w))  
+            x_train.append(cur_x[j].reshape(1, h, w))
             y_train.append(y)
 
             for _ in range(random_times):
                 aug_img = augmentation(cur_x[j])
-                x_train.append(aug_img.reshape(1,h,w))
+                x_train.append(aug_img.reshape(1, h, w))
                 y_train.append(y)
 
     x_train = np.array(x_train)
     y_train = np.array(y_train)
     y = y_train.reshape((y_train.shape[0], class_num))
     train = mx.gluon.data.ArrayDataset(x_train.astype('float32'), y.astype('float32'))
-    train_data = mx.gluon.data.DataLoader(train, batch_size=1, last_batch='discard', shuffle=True)
-    return train_data
+    gluon_data = mx.gluon.data.DataLoader(train, batch_size=1, last_batch='discard', shuffle=True)
+    return gluon_data
+
 
 # Net
-class inception_network(HybridBlock):
+class InceptionNetwork(HybridBlock):
     def __init__(self, classes=3, **kwargs):
-        super(inception_network, self).__init__(**kwargs)
+        super(InceptionNetwork, self).__init__(**kwargs)
         with self.name_scope():
             self.features = nn.HybridSequential(prefix='')
-            self.features.add(nn.Conv2D(use_bias=True, channels = 4, 
-                                        kernel_size = (5,5), strides = (1,1), 
-                                        padding = (1,1), activation='relu'))
+            self.features.add(nn.Conv2D(use_bias=True, channels=4,
+                                        kernel_size=(5, 5), strides=(1, 1),
+                                        padding=(1, 1), activation='relu'))
             self.features.add(nn.AvgPool2D(pool_size=3, strides=3, padding=1))
             
-            self.features.add(nn.Conv2D(use_bias=True, channels = 8, 
-                                        kernel_size = (3,3), strides = (1,1), 
-                                        padding = (1,1), activation='relu'))
+            self.features.add(nn.Conv2D(use_bias=True, channels=8,
+                                        kernel_size=(3, 3), strides=(1, 1),
+                                        padding=(1, 1), activation='relu'))
             self.features.add(nn.AvgPool2D(pool_size=3, strides=3, padding=1))
             
-            self.features.add(nn.Conv2D(use_bias=True, channels = 16, 
-                                        kernel_size = (3,3), strides = (1,1), 
-                                        padding = (1,1), activation='relu'))
+            self.features.add(nn.Conv2D(use_bias=True, channels=16,
+                                        kernel_size=(3, 3), strides=(1, 1),
+                                        padding=(1, 1), activation='relu'))
             self.features.add(nn.AvgPool2D(pool_size=3, strides=3, padding=1))
             
             # self.features.add(_make_output(hidden_units=[]))
@@ -71,15 +74,17 @@ class inception_network(HybridBlock):
         x = self.output(feature_vec)
         return x
 
-def net_summary():
-    net = inception_network()
+
+def print_network():
+    net = InceptionNetwork()
     ctx = mx.gpu(0) if mx.context.num_gpus() > 0 else mx.cpu(0)
     net.initialize(mx.init.Xavier(), ctx=ctx)
-    data_input = mx.nd.array(np.random.randint(low=0, high=20, size=(1,1,128,128)))
+    data_input = mx.nd.array(np.random.randint(low=0, high=20, size=(1, 1, 128, 128)))
     net.summary(data_input)
 
-def train_model(train_data):
-    net = inception_network()
+
+def train_model(data):
+    net = InceptionNetwork()
     net.hybridize()
     ctx = mx.gpu(0) if mx.context.num_gpus() > 0 else mx.cpu(0)
     net.initialize(mx.init.Xavier(), ctx=ctx)
@@ -93,25 +98,29 @@ def train_model(train_data):
         n = 0
         epoch_loss = 0
         # training model
-        for i, (x,y) in enumerate(train_data):
+        for i, (x, y) in enumerate(data):
             x = x.as_in_context(ctx)
             y = y.as_in_context(ctx)
             with mx.autograd.record():           
                 output = net(x)
-                l = loss_function(output, y)
-            l.backward()            
+                loss = loss_function(output, y)
+
+            loss.backward()
             trainer.step(1)
-            epoch_loss += l.mean()
+            epoch_loss += loss.mean()
+
         # train accuracy
-        for x,y in train_data:
-            output=net(x)
-            if np.argmax(output, axis=1) ==  np.argmax(y, axis=1):
+        for x, y in data:
+            output = net(x)
+            if np.argmax(output, axis=1) == np.argmax(y, axis=1):
                 n = n + 1
-            acc = np.around(n/len(train_data), decimals=4)
+            accuracy = np.around(n/len(data), decimals=4)
+            print("Training accuracy:" + accuracy)
     net.export(filename)
-    return net, acc
+    return net
+
 
 if __name__ == "__main__":
-    data = pd.read_pickle('training_data.pickle')
-    train_data = prepare_data(data)
-    net, acc = train_model(train_data)
+    pickle_data = pd.read_pickle('training_data.pickle')
+    train_data = prepare_data(pickle_data)
+    _ = train_model(train_data)

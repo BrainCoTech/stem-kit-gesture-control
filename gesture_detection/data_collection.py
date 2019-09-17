@@ -1,6 +1,5 @@
 import cv2
 import pickle
-from enum import Enum
 from utility.gesture import Gesture
 from utility.camera import read_frame
 from utility.image_processing import preprocess_for_cnn
@@ -10,6 +9,8 @@ training_data = {}
 _IMAGE_COUNT_FOR_EACH_CLASS = 10
 
 should_quit = False
+
+
 def handle_key_press():
     global should_quit
     
@@ -19,13 +20,12 @@ def handle_key_press():
 
 
 if __name__ == "__main__":
-
     img_count = 0
-    gesture_data_label = Gesture.paper # Start collecting data with paper gesture
+    gesture_data_label = Gesture.paper  # Start collecting data with paper gesture
 
     camera = cv2.VideoCapture(0)
 
-    while(not should_quit):
+    while not should_quit:
 
         roi = read_frame(camera)
         handle_key_press()
@@ -39,6 +39,12 @@ if __name__ == "__main__":
         img_count += 1
         
         if img_count == _IMAGE_COUNT_FOR_EACH_CLASS:
+            if gesture_data_label == Gesture.scissor:  # Last gesture data set to collect
+                with open('training_data.pickle', 'wb') as handle:
+                    pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                print('Successfully Saving Data')
+                break
+
             gesture_data_label = Gesture(gesture_data_label.value + 1)
             img_count = 0
         
@@ -46,12 +52,6 @@ if __name__ == "__main__":
             training_data[gesture_data_label.name] = training_data.get(gesture_data_label.name, [])
             training_data[gesture_data_label.name].append(img)
             print(img_count)
-
-        if (gesture_data_label.value == 2) & (img_count == _IMAGE_COUNT_FOR_EACH_CLASS - 1):
-            with open('training_data.pickle', 'wb') as handle:
-                pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print('Successfully Saving Data')
-            should_quit = True
 
     camera.release()
     cv2.destroyAllWindows()

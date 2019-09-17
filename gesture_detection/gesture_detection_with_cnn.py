@@ -1,11 +1,9 @@
-
 import mxnet as mx
 import numpy as np
-import os 
-import cv2
+import os
 import warnings
-from utility.camera import read_frame
 from utility.image_processing import preprocess_for_cnn
+from utility.gesture import Gesture
 
 _src_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -23,9 +21,9 @@ def predict_with_cnn(roi):
     img = preprocess_for_cnn(roi)
 
     # Get output using mxnet
-    outputs = mx.nd.softmax(net(mx.nd.array(img.reshape(1,1,128,128)))).asnumpy()
+    outputs = mx.nd.softmax(net(mx.nd.array(img.reshape(1, 1, 128, 128)))).asnumpy()
     
     # Use the largest output value as the prediction result
     gesture_index = np.argmax(outputs[0])
 
-    return gesture_index, img
+    return Gesture(gesture_index), img

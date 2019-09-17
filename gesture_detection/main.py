@@ -1,30 +1,31 @@
 # If press 'i', using image processing method
 # if press 'c', using pre-trained CNN model
-
-# import packages
 import cv2
 import serial
 from enum import Enum
-from gesture_detection_with_countours import detect_with_coutours
+from gesture_detection_with_countours import detect_with_contours
 from utility.gesture import Gesture
 from utility.camera import read_frame
 from gesture_detection_with_cnn import predict_with_cnn
 
-_SERIAL_PORT_NUMBER ='14240'
+_SERIAL_PORT_NUMBER = '14240'
 _USE_ARDUINO = False
 
 # gesture
-_GESTURE_SERIAL_COMMANDS = {Gesture.paper: 0b00000000, Gesture.rock: 0b11111000, Gesture.scissor: 0b10011000}
+_GESTURE_TO_SERIAL_COMMANDS = {Gesture.paper: 0b00000000, Gesture.rock: 0b11111000, Gesture.scissor: 0b10011000}
        
 should_quit = False
+
 
 class Modes(Enum):
     unstarted = 0
     contours = 1
     cnn = 2
 
+
 mode = Modes.unstarted
-     
+
+
 def handle_key_press():
     global should_quit, mode
     
@@ -42,15 +43,15 @@ def handle_key_press():
 def write_gesture_to_serial_port(gesture):
     if gesture is not Gesture.unknown:
         ser = serial.Serial('/dev/cu.usbserial-' + _SERIAL_PORT_NUMBER, 9600)
-        ser.write(_GESTURE_SERIAL_COMMANDS[gesture])
+        ser.write(_GESTURE_TO_SERIAL_COMMANDS[gesture])
 
 
 if __name__ == "__main__":
 
     camera = cv2.VideoCapture(0)
-    cv2.namedWindow("Video",0)
+    cv2.namedWindow("Video", 0)
 
-    while(not should_quit):
+    while not should_quit:
         
         roi = read_frame(camera)
 
@@ -59,16 +60,14 @@ if __name__ == "__main__":
         gesture_detected = Gesture.unknown
         
         if mode is Modes.contours:
-            index, img = detect_with_coutours(roi)
-            gesture_detected = Gesture(index)
+            gesture_detected, img = detect_with_contours(roi)
             print("Gesture detected with contours:%s" % gesture_detected.name)
 
         elif mode is Modes.cnn:
-            index, img = predict_with_cnn(roi)
-            gesture_detected = Gesture(index)
+            gesture_detected, img = predict_with_cnn(roi)
             print("Gesture detected with CNN:%s" % gesture_detected.name)
 
-        else: # unstarted
+        else:  # not started
             img = roi
                 
         if _USE_ARDUINO:
@@ -78,4 +77,3 @@ if __name__ == "__main__":
 
     camera.release()
     cv2.destroyAllWindows()
-
