@@ -1,8 +1,8 @@
 import cv2
 import pickle
 from enum import Enum
-from utility.frame_read import read_frame
-from utility.gesture_detection import preprocess_cnn_img
+from utility.camera import read_frame
+from utility.image_processing import preprocess_for_cnn
 
 label = ['paper', 'rock', 'scissor']
 training_data = {label[0]:[], label[1]:[], label[2]:[]}
@@ -11,13 +11,13 @@ text = ['Press any key to collect PAPER data',
         'Press any key to collect SCISSOR data']
 img_num_base = 20
 
-def collect_data():
+def record():
     img_num = 0
     should_quit = False
     camera = cv2.VideoCapture(0)
     while(not should_quit):
         roi = read_frame(camera)
-        img = preprocess_cnn_img(roi)
+        img = preprocess_for_cnn(roi)
         keypress = cv2.waitKey(1) & 0xFF
         if keypress == ord('q'):
             should_quit = True
@@ -34,7 +34,7 @@ def collect_data():
             print('Collecting PAPER data: {}'.format(img_num-img_num_base*2))
         img_num += 1
         if img_num == 3*img_num_base:
-            with open('./utility/neural_network/training_data.pickle', 'wb') as handle:
+            with open('./utility/network_data/training_data.pickle', 'wb') as handle:
                 pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print('Successfully Saving Data')
             should_quit = True      
@@ -42,4 +42,4 @@ def collect_data():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    collect_data()
+    record()

@@ -8,16 +8,16 @@ Created on Thu Sep 12 13:47:49 2019
 
 import cv2
 import numpy as np
-from utility.gesture_detection import detect_bodyskin, get_contours, get_defects_count
+from utility.image_processing import detect_bodyskin, get_contours, get_defects_count
 
 
 # gesture dictionary
 # ndefects: [gesture num, gesture name]
-UNKOWN = 0
+UNKOWN = -1
 gestures = {0:[1, "rock"], 1:[2, "scissor"], 2:[2, "scissor"], 3:[UNKOWN, "unkown"], 4:[0, "paper"], 5:[0, "paper"]}
 
 
-def image_processing_func(roi):
+def detect_with_coutours(roi):
     
     # detect gesture based on skin
     thresh_img = detect_bodyskin(roi)
@@ -26,7 +26,7 @@ def image_processing_func(roi):
     # get a list of contours for gesture
     contours = get_contours(thresh_img.copy())
     
-    if len(contours)!=0:
+    if len(contours) > 0:
     
         # find the contour which have largest area in contour list
         largest_contour = max(contours, key = lambda contour: cv2.contourArea(contour)) 
@@ -38,7 +38,7 @@ def image_processing_func(roi):
         # get convex contour and return gesture name
         # if verbose = Ture, auxiliary lines and auxiliary points using for prediction will show; otherwise, not
         if defects is not None:
-            defects_img, ndefects = get_defects_count(roi, largest_contour, defects, verbose = True)               
+            defects_img, ndefects = get_defects_count(roi, largest_contour, defects)               
             #print(gestures[ndefects])   
             imgs = concatenate_imgs(thresh_img, defects_img)
             

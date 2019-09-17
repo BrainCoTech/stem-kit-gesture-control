@@ -4,10 +4,10 @@
 # import packages
 import cv2
 import serial
-from image_processing_method import image_processing_func
-from utility.frame_read import read_frame
+from gesture_detection_with_countours import detect_with_coutours
+from utility.camera import read_frame
 from enum import Enum
-from cnn import cnn_method
+from gesture_detection_with_cnn import predict_with_cnn
 
 _SERIAL_PORT_NUMBER ='14240'
 _USE_ARDUINO = False
@@ -24,7 +24,6 @@ _GESTURE_SERIAL_COMMANDS = {Gesture.paper: 0b00000000, Gesture.rock: 0b11111000,
        
 should_quit = False
 
-
 class Modes(Enum):
     unstarted = 0
     contours = 1
@@ -32,9 +31,8 @@ class Modes(Enum):
 
 mode = Modes.unstarted
      
-def select_mode():
-    global should_quit
-    global mode
+def handle_key_press():
+    global should_quit, mode
     
     keypress = cv2.waitKey(1) & 0xFF
     if keypress == ord('q'):
@@ -61,24 +59,25 @@ if __name__ == "__main__":
     while(not should_quit):
         
         roi = read_frame(camera)
-        select_mode()
+
+        handle_key_press()
         
         gesture_detected = Gesture.unknown
         
         if mode is Modes.contours:
-            index, img = image_processing_func(roi)
-            print(Gesture(index))
+            index, img = detect_with_coutours(roi)
+            gesture_detected = Gesture(index)
+            print("Gesture detected with contours:%s" % gesture_detected)
 
         elif mode is Modes.cnn:
-            index, img = cnn_method(roi)
-            print(Gesture(index))
+            index, img = predict_with_cnn(roi)
+            gesture_detected = Gesture(index)
+            print("Gesture detected with CNN:%s" % gesture_detected)
 
         else: # unstarted
             img = roi
                 
         if _USE_ARDUINO:
-
-            gesture_detected =  Gesture(index)
             write_gesture_to_serial_port(gesture_detected)
             
         cv2.imshow("Video", img)
