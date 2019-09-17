@@ -75,3 +75,16 @@ def preprocess_for_cnn(roi):
     img = down_sample(img, largecont)
  
     return img
+
+
+def get_largest_contour(contours):
+    return max(contours, key = lambda contour: cv2.contourArea(contour)) 
+
+def concatenate_imgs(gray_scale_img, color_img):
+    #concatenate a gray scale img and a 3 channels img
+    gray_scale_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
+    imgs = np.concatenate((gray_scale_img, color_img), axis=1)
+    return imgs
+
+def get_convex_hull(largest_contour):
+    return cv2.convexHull(largest_contour, returnPoints = False)
