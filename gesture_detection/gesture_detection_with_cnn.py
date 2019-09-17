@@ -1,13 +1,11 @@
+
+import mxnet as mx
+import numpy as np
+import os 
+import cv2
+import warnings
 from utility.camera import read_frame
 from utility.image_processing import preprocess_for_cnn
-import cv2
-import mxnet as mx
-
-
-import numpy as np
-import mxnet as mx
-import warnings
-import os 
 
 _src_dir = os.path.abspath(os.path.dirname(__file__))
 

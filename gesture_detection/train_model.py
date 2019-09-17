@@ -3,12 +3,13 @@ import pandas as pd
 import mxnet as mx
 from mxnet.gluon import nn, HybridBlock
 from imgaug import augmenters as iaa
+from utility.gesture import Gesture
 
 epoch = 100
 learning_rate = 0.0001
 filename = 'trained_network'
 random_times = 1
-label = ['scissor', 'rock', 'paper']
+class_num = 3
 
 def augmentation(img):
     seq = iaa.Sequential([
@@ -19,10 +20,10 @@ def augmentation(img):
 
 def prepare_data(data):
     x_train, y_train = [], []
-    for i in range(len(label)):
-        y = np.zeros((1, len(label)))
+    for i in range(class_num):
+        y = np.zeros((1, class_num))
         y[0,i] = 1
-        cur_label = label[i]
+        cur_label = Gesture(i).name
         cur_x = np.array(data[cur_label])
         h,w = cur_x[0].shape
         for j in range(cur_x.shape[0]):
@@ -36,7 +37,7 @@ def prepare_data(data):
 
     x_train = np.array(x_train)
     y_train = np.array(y_train)
-    y = y_train.reshape((y_train.shape[0], len(label)))
+    y = y_train.reshape((y_train.shape[0], class_num))
     train = mx.gluon.data.ArrayDataset(x_train.astype('float32'), y.astype('float32'))
     train_data = mx.gluon.data.DataLoader(train, batch_size=1, last_batch='discard', shuffle=True)
     return train_data
@@ -111,6 +112,6 @@ def train_model(train_data):
     return net, acc
 
 if __name__ == "__main__":
-    data = pd.read_pickle('./network_data/training_data.pickle')
+    data = pd.read_pickle('training_data.pickle')
     train_data = prepare_data(data)
     net, acc = train_model(train_data)

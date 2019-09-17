@@ -1,45 +1,57 @@
 import cv2
 import pickle
 from enum import Enum
+from utility.gesture import Gesture
 from utility.camera import read_frame
 from utility.image_processing import preprocess_for_cnn
 
-label = ['paper', 'rock', 'scissor']
-training_data = {label[0]:[], label[1]:[], label[2]:[]}
-text = ['Press any key to collect PAPER data',
-        'Press any key to collect ROCK data',
-        'Press any key to collect SCISSOR data']
-img_num_base = 20
+training_data = {}
 
-def record():
-    img_num = 0
-    should_quit = False
-    camera = cv2.VideoCapture(0)
-    while(not should_quit):
-        roi = read_frame(camera)
-        img = preprocess_for_cnn(roi)
-        keypress = cv2.waitKey(1) & 0xFF
-        if keypress == ord('q'):
-            should_quit = True
-        elif img_num%img_num_base == 0:
-            input(text[int(img_num/img_num_base)])
-        elif img_num//img_num_base == 0:
-            training_data[label[0]].append(img)
-            print('Collecting SCISSOR data: {}'.format(img_num))
-        elif img_num//img_num_base == 1:
-            training_data[label[1]].append(img)
-            print('Collecting ROCK data: {}'.format(img_num-img_num_base))
-        elif img_num//img_num_base == 2:
-            training_data[label[2]].append(img)
-            print('Collecting PAPER data: {}'.format(img_num-img_num_base*2))
-        img_num += 1
-        if img_num == 3*img_num_base:
-            with open('./utility/network_data/training_data.pickle', 'wb') as handle:
-                pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print('Successfully Saving Data')
-            should_quit = True      
-    camera.release()
-    cv2.destroyAllWindows()
+_IMAGE_COUNT_FOR_EACH_CLASS = 10
+
+should_quit = False
+def handle_key_press():
+    global should_quit
+    
+    keypress = cv2.waitKey(1) & 0xFF
+    if keypress == ord('q'):
+        should_quit = True
+
 
 if __name__ == "__main__":
-    record()
+
+    img_count = 0
+    gesture_data_label = Gesture.paper # Start collecting data with paper gesture
+
+    camera = cv2.VideoCapture(0)
+
+    while(not should_quit):
+
+        roi = read_frame(camera)
+        handle_key_press()
+
+        img = preprocess_for_cnn(roi)
+
+        if img_count == 0:
+            input("Press any key to collect data for:" + gesture_data_label.name)
+            print('Collecting data for:' + gesture_data_label.name)
+
+        img_count += 1
+        
+        if img_count == _IMAGE_COUNT_FOR_EACH_CLASS:
+            gesture_data_label = Gesture(gesture_data_label.value + 1)
+            img_count = 0
+        
+        else:
+            training_data[gesture_data_label.name] = training_data.get(gesture_data_label.name, [])
+            training_data[gesture_data_label.name].append(img)
+            print(img_count)
+
+        if (gesture_data_label.value == 2) & (img_count == _IMAGE_COUNT_FOR_EACH_CLASS - 1):
+            with open('training_data.pickle', 'wb') as handle:
+                pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print('Successfully Saving Data')
+            should_quit = True
+
+    camera.release()
+    cv2.destroyAllWindows()
