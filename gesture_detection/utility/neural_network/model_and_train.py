@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import mxnet as mx
 from mxnet.gluon import nn, HybridBlock
+# from utility.neural_network.data_prepare import prepare_data
 from data_prepare import prepare_data
 
 epoch = 100
@@ -78,8 +79,7 @@ def train_model(train_data):
     return net, acc
 
 if __name__ == "__main__":
+    # data = pd.read_pickle('./utility/neural_network/training_data.pickle')
     data = pd.read_pickle('./training_data.pickle')
     train_data = prepare_data(data)
     net, acc = train_model(train_data)
-
-

@@ -7,6 +7,7 @@ import serial
 from image_processing_method import image_processing_func
 from utility.frame_read import read_frame
 from enum import Enum
+from cnn import cnn_method
 
 _SERIAL_PORT_NUMBER ='14240'
 _USE_ARDUINO = False
@@ -69,7 +70,7 @@ if __name__ == "__main__":
             gesture_detected =  Gesture(index)
             
         elif mode is Modes.cnn:
-            print("cnn")
+            index = cnn_method(roi)
         else: # unstarted
             img = roi
 

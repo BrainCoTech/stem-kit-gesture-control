@@ -3,7 +3,7 @@ import imutils
 
 # parameters
 _roi_size = 240
-_top, _left = 20, 700
+_top, _left = 20, 450
 # read frame from camera, return back frame and a segmented region where to put hands in 
 def read_frame(camera):
 # def read_frame(camera):
