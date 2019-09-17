@@ -67,16 +67,19 @@ if __name__ == "__main__":
         
         if mode is Modes.contours:
             index, img = image_processing_func(roi)
-            gesture_detected =  Gesture(index)
-            
+            print(Gesture(index))
+
         elif mode is Modes.cnn:
-            index = cnn_method(roi)
+            index, img = cnn_method(roi)
+            print(Gesture(index))
+
         else: # unstarted
             img = roi
-
                 
         if _USE_ARDUINO:
-            write_gesture_to_serial_port(gesture_detected)    
+
+            gesture_detected =  Gesture(index)
+            write_gesture_to_serial_port(gesture_detected)
             
         cv2.imshow("Video", img)
 

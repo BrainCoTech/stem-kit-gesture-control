@@ -7,4 +7,4 @@ import mxnet as mx
 def cnn_method(roi, net = None):
     img = preprocess_cnn_img(roi)
     result = predict_class(img)
-    return result
+    return result, img

@@ -46,7 +46,7 @@ def image_processing_func(roi):
             if ndefects > 5:
                 ndefects = UNKOWN
                 
-            print(gestures[ndefects][1])    
+            #print(gestures[ndefects][1])    
             return gestures[ndefects][0], imgs   
         
     return gestures[UNKOWN][0], imgs
