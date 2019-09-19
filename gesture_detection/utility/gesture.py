@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class Gesture(Enum.IntEnum):
+class Gesture(IntEnum):
     unknown = -1
     paper = 0
     rock = 1
