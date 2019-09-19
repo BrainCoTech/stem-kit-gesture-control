@@ -10,7 +10,7 @@ from utility.image_processing import *
 from utility.gesture import Gesture
 
 
-acute_angle_count_to_gesture = [Gesture.rock, Gesture.scissor, Gesture.scissor, Gesture.unkown, Gesture.paper]
+acute_angle_count_to_gesture = [Gesture.rock, Gesture.scissor, Gesture.scissor, Gesture.unknown, Gesture.paper]
 
 
 def detect_with_contours(roi):

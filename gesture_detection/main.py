@@ -13,9 +13,9 @@ _USE_ARDUINO = False
 
 # gesture
 _GESTURE_TO_SERIAL_COMMANDS = {Gesture.paper: 0b00000000, Gesture.rock: 0b11111000, Gesture.scissor: 0b10011000}
-       
-should_quit = False
 
+
+should_quit = False
 
 class Modes(Enum):
     unstarted = 0
@@ -61,12 +61,11 @@ if __name__ == "__main__":
         
         if mode is Modes.contours:
             gesture_detected, img = detect_with_contours(roi)
-            print("Gesture detected with contours:%s" % gesture_detected.name)
+            print("Gesture detected with contours: " + gesture_detected.name)
 
         elif mode is Modes.cnn:
             gesture_detected, img = predict_with_cnn(roi)
-            print("Gesture detected with CNN:%s" % gesture_detected.name)
-
+            print("Gesture detected with CNN: " + gesture_detected.name)
         else:  # not started
             img = roi
                 
