@@ -16,10 +16,10 @@ acute_angle_count_to_gesture = [Gesture.rock, Gesture.scissor, Gesture.scissor, 
 def detect_with_contours(roi):
     
     # detect gesture based on skin
-    thresh_img = detect_body_skin(roi)
+    skin_img = detect_body_skin(roi)
 
     # get a list of contours for gesture
-    contours = get_contours(thresh_img.copy())
+    contours = get_contours(skin_img.copy()) #TOOD: Check for unnecessary copy
     
     if len(contours) > 0:
     
@@ -37,12 +37,12 @@ def detect_with_contours(roi):
             
             defects_img, num_defects = get_defects_count(roi, largest_contour, defects)
         
-            images = concatenate_images(thresh_img, defects_img)
+            images = concatenate_images(skin_img, defects_img)
             
             # if the number of defects <=5, return
             if num_defects <= 5:
                 
                 return acute_angle_count_to_gesture[num_defects], images
 
-    images = concatenate_images(thresh_img, roi)
+    images = concatenate_images(skin_img, roi)
     return Gesture.unkown, images

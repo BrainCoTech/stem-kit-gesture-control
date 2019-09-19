@@ -3,11 +3,9 @@ import cv2
 import math
 
 # parameters 
-_bgKernel = (3, 3)
-_blurKernel = (5, 5)
-_erodeKernel = (7, 7)
-_angleThreshold = math.pi/2
-
+# _bgKernel = (3, 3)
+# _blurKernel = (5, 5)
+_erosion_kernel_size = (7, 7)
 
 # segment hand shape based on skin detection and return a binary image 
 def detect_body_skin(frame):
@@ -15,7 +13,7 @@ def detect_body_skin(frame):
     (_, cr, _) = cv2.split(ycrcb)
     cr1 = cv2.GaussianBlur(cr, _blurKernel, 0) 
     _, skin = cv2.threshold(cr1, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    kernel = np.ones(_erodeKernel, np.uint8)
+    kernel = np.ones(_erosion_kernel_size, np.uint8)
     skin = cv2.erode(skin, kernel, iterations=1)
     skin = cv2.dilate(skin, kernel, iterations=1)
     return skin
@@ -27,7 +25,7 @@ def get_contours(img):
     return contours
 
 
-def down_sample(img, large_contour):  # TODO: Pass down sample target size as a parameter
+def down_sample(img, large_contour,to_size=128):  # TODO: Pass down sample target size as a parameter
     # region for hand
     img_height = img.shape[0]
     x = large_contour[:, 0, 0]
@@ -36,12 +34,11 @@ def down_sample(img, large_contour):  # TODO: Pass down sample target size as a 
     y = large_contour[:, 0, 1]
     y_min = min(y)
     y_max = max(y)
-    diff = (x_max-x_min) - (y_max-y_min)
-    if diff > 0:
+    if x_max-x_min > y_max-y_min: # width > height
         img = img[x_min:x_max, int(img_height/2-(x_max-x_min)/2):int(img_height/2+(x_max-x_min)/2)]
     else:
         img = img[int(img_height/2-(y_max-y_min)/2):int(img_height/2+(y_max-y_min)/2), y_min:y_max]
-    img = cv2.resize(img, (128, 128))
+    img = cv2.resize(img, (to_size, to_size))
     return img
 
 
@@ -57,7 +54,7 @@ def get_defects_count(img, contour, defects, draw_on_figure=True):
         b = np.linalg.norm(beg - far)
         c = np.linalg.norm(end - far)
         angle = math.acos((b ** 2 + c ** 2 - a ** 2) / (2 * b * c))
-        if angle <= _angleThreshold:
+        if angle < math.pi/2:
             n_defects = n_defects + 1
             if draw_on_figure:
                 cv2.circle(img, tuple(far), 3, (255, 0, 0), -1)
@@ -74,11 +71,10 @@ def preprocess_for_cnn(roi):
     img = detect_body_skin(roi)
     # get a list of contours for gesture
     contours = get_contours(img.copy())
-    if len(contours) != 0:
+    if len(contours) > 0:
         large_contour = max(contours, key=lambda contour: cv2.contourArea(contour))
     # down sample image
-    img = down_sample(img, large_contour)
- 
+    img = down_sample(img, large_contour) #TODO: What happends if len(contours) == 0
     return img
 
 
