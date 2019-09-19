@@ -45,4 +45,4 @@ def detect_with_contours(roi):
                 return acute_angle_count_to_gesture[num_defects], images
 
     images = concatenate_images(skin_img, roi)
-    return Gesture.unkown, images
+    return Gesture.unknown, images
