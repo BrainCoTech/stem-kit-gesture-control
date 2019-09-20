@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 12 13:47:49 2019
+Created on Th/u Sep 12 13:47:49 2019
 
 @author: jiaxinsun
 """
@@ -19,7 +19,7 @@ def detect_with_contours(roi):
     skin_img = detect_body_skin(roi)
 
     # get a list of contours for gesture
-    contours = get_contours(skin_img.copy()) #TOOD: Check for unnecessary copy
+    contours = get_contours(skin_img) 
     
     if len(contours) > 0:
     
@@ -39,8 +39,8 @@ def detect_with_contours(roi):
         
             images = concatenate_images(skin_img, defects_img)
             
-            # if the number of defects <=5, return
-            if num_defects <= 5:
+            # if the number of defects <5, return
+            if num_defects < 5:
                 
                 return acute_angle_count_to_gesture[num_defects], images
 
