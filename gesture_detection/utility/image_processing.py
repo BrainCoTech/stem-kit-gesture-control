@@ -4,7 +4,7 @@ import math
 
 # parameters 
 # _bgKernel = (3, 3)
-# _blurKernel = (5, 5)
+_blurKernel = (5, 5)
 _erosion_kernel_size = (7, 7)
 
 # segment hand shape based on skin detection and return a binary image 
@@ -38,7 +38,14 @@ def down_sample(img, large_contour,to_size=128):  # TODO: Pass down sample targe
         img = img[x_min:x_max, int(img_height/2-(x_max-x_min)/2):int(img_height/2+(x_max-x_min)/2)]
     else:
         img = img[int(img_height/2-(y_max-y_min)/2):int(img_height/2+(y_max-y_min)/2), y_min:y_max]
-    img = cv2.resize(img, (to_size, to_size))
+
+    # if the img is empty, fill the array with zeros
+    if img.size > 0:    
+        img = cv2.resize(img, (to_size, to_size))
+    else:
+        img = np.zeros((128,128), dtype = np.int16)
+
+
     return img
 
 
@@ -70,11 +77,17 @@ def preprocess_for_cnn(roi):
     # preprocess image of gesture
     img = detect_body_skin(roi)
     # get a list of contours for gesture
-    contours = get_contours(img.copy())
+
+    contours = get_contours(img)
+
     if len(contours) > 0:
-        large_contour = max(contours, key=lambda contour: cv2.contourArea(contour))
+        large_contour = max(contours, key=lambda contour: cv2.contourArea(contour))        
+    else:
+        large_contour = np.zeros((625,1,2), dtype = np.int16)
+
+
     # down sample image
-    img = down_sample(img, large_contour) #TODO: What happends if len(contours) == 0
+    img = down_sample(img, large_contour)
     return img
 
 
