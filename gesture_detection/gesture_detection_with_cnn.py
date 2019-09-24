@@ -10,7 +10,9 @@ _src_dir = os.path.abspath(os.path.dirname(__file__))
 network_symbol_path = os.path.join(_src_dir, "network_data", "trained_network-symbol.json")
 network_params_path = os.path.join(_src_dir, "network_data", "trained_network-0000.params")
 
-if os.path.exists(network_symbol_path) and os.path.exists(network_params_path):
+if not(os.path.exists(network_symbol_path) and os.path.exists(network_params_path)):
+    network_symbol_path = os.path.join(_src_dir, "network_data", "pretrained_network-symbol.json")
+    network_params_path = os.path.join(_src_dir, "network_data", "pretrained_network-0000.params")
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         net = mx.gluon.SymbolBlock.imports(network_symbol_path, ['data'], network_params_path)

@@ -1,8 +1,12 @@
 import cv2
+import os
 import pickle
 from utility.gesture import Gesture
 from utility.camera import read_frame
 from utility.image_processing import preprocess_for_cnn
+
+_src_dir = os.path.abspath(os.path.dirname(__file__))
+_data_dir = os.path.join(_src_dir, "network_data", "training_data.pickle")
 
 training_data = {}
 
@@ -31,6 +35,7 @@ if __name__ == "__main__":
         handle_key_press()
 
         img = preprocess_for_cnn(roi)
+        cv2.imshow('collect_img', img)
 
         if img_count == 0:
             input("Press any key to collect data for:" + gesture_data_label.name)
@@ -40,7 +45,7 @@ if __name__ == "__main__":
         
         if img_count == _IMAGE_COUNT_FOR_EACH_CLASS:
             if gesture_data_label == Gesture.scissor:  # Last gesture data set to collect
-                with open('training_data.pickle', 'wb') as handle:
+                with open(_data_dir, 'wb') as handle:
                     pickle.dump(training_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
                 print('Successfully Saving Data')
                 break
