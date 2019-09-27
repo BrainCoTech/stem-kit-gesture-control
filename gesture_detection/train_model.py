@@ -6,6 +6,7 @@ from mxnet.gluon import nn, HybridBlock
 from imgaug import augmenters as iaa
 from utility.gesture import Gesture
 
+
 epoch = 100
 learning_rate = 0.0001
 filename = "trained_network"

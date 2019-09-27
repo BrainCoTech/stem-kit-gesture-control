@@ -1,4 +1,4 @@
-# If press 'i', using image processing method
+i# If press 'i', using image processing method
 # if press 'c', using pre-trained CNN model
 import cv2
 import serial

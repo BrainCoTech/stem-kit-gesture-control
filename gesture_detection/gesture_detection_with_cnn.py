@@ -11,16 +11,24 @@ network_symbol_path = os.path.join(_src_dir, "network_data", "trained_network-sy
 network_params_path = os.path.join(_src_dir, "network_data", "trained_network-0000.params")
 
 if not(os.path.exists(network_symbol_path) and os.path.exists(network_params_path)):
+    print("No trained network, loading pretrained network")
     network_symbol_path = os.path.join(_src_dir, "network_data", "pretrained_network-symbol.json")
     network_params_path = os.path.join(_src_dir, "network_data", "pretrained_network-0000.params")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        net = mx.gluon.SymbolBlock.imports(network_symbol_path, ['data'], network_params_path)
+    if not(os.path.exists(network_symbol_path) and os.path.exists(network_params_path)):
+        print("ERROR:No pretrained network or trained network exist")
+        exit(1)
+
+        
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    net = mx.gluon.SymbolBlock.imports(network_symbol_path, ['data'], network_params_path)
 
 
 def predict_with_cnn(roi):
     # Preprocess image for CNN
     img = preprocess_for_cnn(roi)
+
+    # if pixels are less, return None
 
     # Get output using mxnet
     outputs = mx.nd.softmax(net(mx.nd.array(img.reshape(1, 1, 128, 128)))).asnumpy()

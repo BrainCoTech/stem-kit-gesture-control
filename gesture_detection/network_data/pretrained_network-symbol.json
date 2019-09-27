@@ -7,7 +7,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_conv0_weight", 
+      "name": "inceptionnetwork4_conv0_weight", 
       "attrs": {
         "__dtype__": "0", 
         "__lr_mult__": "1.0", 
@@ -19,7 +19,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_conv0_bias", 
+      "name": "inceptionnetwork4_conv0_bias", 
       "attrs": {
         "__dtype__": "0", 
         "__init__": "zeros", 
@@ -32,7 +32,7 @@
     }, 
     {
       "op": "Convolution", 
-      "name": "inceptionnetwork3_conv0_fwd", 
+      "name": "inceptionnetwork4_conv0_fwd", 
       "attrs": {
         "dilate": "(1, 1)", 
         "kernel": "(5, 5)", 
@@ -47,13 +47,13 @@
     }, 
     {
       "op": "Activation", 
-      "name": "inceptionnetwork3_conv0_relu_fwd", 
+      "name": "inceptionnetwork4_conv0_relu_fwd", 
       "attrs": {"act_type": "relu"}, 
       "inputs": [[3, 0, 0]]
     }, 
     {
       "op": "Pooling", 
-      "name": "inceptionnetwork3_pool0_fwd", 
+      "name": "inceptionnetwork4_pool0_fwd", 
       "attrs": {
         "count_include_pad": "True", 
         "global_pool": "False", 
@@ -67,7 +67,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_conv1_weight", 
+      "name": "inceptionnetwork4_conv1_weight", 
       "attrs": {
         "__dtype__": "0", 
         "__lr_mult__": "1.0", 
@@ -79,7 +79,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_conv1_bias", 
+      "name": "inceptionnetwork4_conv1_bias", 
       "attrs": {
         "__dtype__": "0", 
         "__init__": "zeros", 
@@ -92,7 +92,7 @@
     }, 
     {
       "op": "Convolution", 
-      "name": "inceptionnetwork3_conv1_fwd", 
+      "name": "inceptionnetwork4_conv1_fwd", 
       "attrs": {
         "dilate": "(1, 1)", 
         "kernel": "(3, 3)", 
@@ -107,13 +107,13 @@
     }, 
     {
       "op": "Activation", 
-      "name": "inceptionnetwork3_conv1_relu_fwd", 
+      "name": "inceptionnetwork4_conv1_relu_fwd", 
       "attrs": {"act_type": "relu"}, 
       "inputs": [[8, 0, 0]]
     }, 
     {
       "op": "Pooling", 
-      "name": "inceptionnetwork3_pool1_fwd", 
+      "name": "inceptionnetwork4_pool1_fwd", 
       "attrs": {
         "count_include_pad": "True", 
         "global_pool": "False", 
@@ -127,7 +127,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_conv2_weight", 
+      "name": "inceptionnetwork4_conv2_weight", 
       "attrs": {
         "__dtype__": "0", 
         "__lr_mult__": "1.0", 
@@ -139,7 +139,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_conv2_bias", 
+      "name": "inceptionnetwork4_conv2_bias", 
       "attrs": {
         "__dtype__": "0", 
         "__init__": "zeros", 
@@ -152,7 +152,7 @@
     }, 
     {
       "op": "Convolution", 
-      "name": "inceptionnetwork3_conv2_fwd", 
+      "name": "inceptionnetwork4_conv2_fwd", 
       "attrs": {
         "dilate": "(1, 1)", 
         "kernel": "(3, 3)", 
@@ -167,13 +167,13 @@
     }, 
     {
       "op": "Activation", 
-      "name": "inceptionnetwork3_conv2_relu_fwd", 
+      "name": "inceptionnetwork4_conv2_relu_fwd", 
       "attrs": {"act_type": "relu"}, 
       "inputs": [[13, 0, 0]]
     }, 
     {
       "op": "Pooling", 
-      "name": "inceptionnetwork3_pool2_fwd", 
+      "name": "inceptionnetwork4_pool2_fwd", 
       "attrs": {
         "count_include_pad": "True", 
         "global_pool": "False", 
@@ -187,7 +187,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_dense0_weight", 
+      "name": "inceptionnetwork4_dense0_weight", 
       "attrs": {
         "__dtype__": "0", 
         "__lr_mult__": "1.0", 
@@ -199,7 +199,7 @@
     }, 
     {
       "op": "null", 
-      "name": "inceptionnetwork3_dense0_bias", 
+      "name": "inceptionnetwork4_dense0_bias", 
       "attrs": {
         "__dtype__": "0", 
         "__init__": "zeros", 
@@ -212,7 +212,7 @@
     }, 
     {
       "op": "FullyConnected", 
-      "name": "inceptionnetwork3_dense0_fwd", 
+      "name": "inceptionnetwork4_dense0_fwd", 
       "attrs": {
         "flatten": "True", 
         "no_bias": "False", 
