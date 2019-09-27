@@ -1,16 +1,21 @@
 import numpy as np
 import pandas as pd
 import mxnet as mx
+import os
 from mxnet.gluon import nn, HybridBlock
 from imgaug import augmenters as iaa
 from utility.gesture import Gesture
 
+
 epoch = 100
 learning_rate = 0.0001
-filename = 'trained_network'
+filename = "trained_network"
 random_times = 1
 class_num = 3
 
+_src_dir = os.path.abspath(os.path.dirname(__file__))
+_network_dir = os.path.join(_src_dir, "network_data", filename)
+_data_dir = os.path.join(_src_dir, "network_data", "training_data.pickle")
 
 def augmentation(img):
     seq = iaa.Sequential([
@@ -46,9 +51,9 @@ def prepare_data(data):
 
 
 # Net
-class InceptionNetwork(HybridBlock):
+class Network(HybridBlock):
     def __init__(self, classes=3, **kwargs):
-        super(InceptionNetwork, self).__init__(**kwargs)
+        super(Network, self).__init__(**kwargs)
         with self.name_scope():
             self.features = nn.HybridSequential(prefix='')
             self.features.add(nn.Conv2D(use_bias=True, channels=4,
@@ -76,7 +81,7 @@ class InceptionNetwork(HybridBlock):
 
 
 def print_network():
-    net = InceptionNetwork()
+    net = Network()
     ctx = mx.gpu(0) if mx.context.num_gpus() > 0 else mx.cpu(0)
     net.initialize(mx.init.Xavier(), ctx=ctx)
     data_input = mx.nd.array(np.random.randint(low=0, high=20, size=(1, 1, 128, 128)))
@@ -84,7 +89,7 @@ def print_network():
 
 
 def train_model(data):
-    net = InceptionNetwork()
+    net = Network()
     net.hybridize()
     ctx = mx.gpu(0) if mx.context.num_gpus() > 0 else mx.cpu(0)
     net.initialize(mx.init.Xavier(), ctx=ctx)
@@ -114,13 +119,13 @@ def train_model(data):
             output = net(x)
             if np.argmax(output, axis=1) == np.argmax(y, axis=1):
                 n = n + 1
-            accuracy = np.around(n/len(data), decimals=4)
-            print("Training accuracy:" + accuracy)
-    net.export(filename)
+        accuracy = np.around(n/len(data), decimals=4)
+        print("Training accuracy:", accuracy)
+    net.export(_network_dir)
     return net
 
 
 if __name__ == "__main__":
-    pickle_data = pd.read_pickle('training_data.pickle')
+    pickle_data = pd.read_pickle(_data_dir)
     train_data = prepare_data(pickle_data)
     _ = train_model(train_data)
