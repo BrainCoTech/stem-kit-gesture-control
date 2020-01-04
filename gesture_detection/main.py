@@ -8,12 +8,10 @@ from utility.gesture import Gesture
 from utility.camera import read_frame
 from gesture_detection_with_cnn import predict_with_cnn
 
-_SERIAL_PORT_NUMBER = '14240'
+_SERIAL_PORT_NUMBER = '14230'
 _USE_ARDUINO = False
-
 # gesture
-_GESTURE_TO_SERIAL_COMMANDS = {Gesture.paper: 0b00000000, Gesture.rock: 0b11111000, Gesture.scissor: 0b10011000}
-
+_GESTURE_TO_SERIAL_COMMANDS = {Gesture.paper: 0b10011000, Gesture.rock: 0b00000000, Gesture.scissor: 0b11111000}
 
 should_quit = False
 
@@ -24,7 +22,6 @@ class Modes(Enum):
 
 
 mode = Modes.unstarted
-
 
 def handle_key_press():
     global should_quit, mode
@@ -43,34 +40,35 @@ def handle_key_press():
 def write_gesture_to_serial_port(gesture):
     if gesture is not Gesture.unknown:
         ser = serial.Serial('/dev/cu.usbserial-' + _SERIAL_PORT_NUMBER, 9600)
-        ser.write(_GESTURE_TO_SERIAL_COMMANDS[gesture])
-
+        ser.write(bytes([_GESTURE_TO_SERIAL_COMMANDS[gesture]]))
 
 if __name__ == "__main__":
 
     camera = cv2.VideoCapture(0)
     cv2.namedWindow("Video", 0)
 
-    while not should_quit:
-        
-        roi = read_frame(camera)
+    count = 0
 
+    while not should_quit:
+        roi = read_frame(camera)
         handle_key_press()
-        
         gesture_detected = Gesture.unknown
-        
+
         if mode is Modes.contours:
             gesture_detected, img = detect_with_contours(roi)
-            print("Gesture detected with contours: " + gesture_detected.name)
+            count += 1
 
         elif mode is Modes.cnn:
             gesture_detected, img = predict_with_cnn(roi)
-            print("Gesture detected with CNN: " + gesture_detected.name)
+            count += 1
+
         else:  # not started
             img = roi
                 
-        if _USE_ARDUINO:
+        if _USE_ARDUINO and count == 10:
             write_gesture_to_serial_port(gesture_detected)
+            print("Gesture detected with " + mode.name +": " + gesture_detected.name)
+            count = 0
             
         cv2.imshow("Video", img)
 
