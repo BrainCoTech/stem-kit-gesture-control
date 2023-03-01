@@ -2,5 +2,5 @@ numpy>=1.17.0
 opencv-python>=4.1.1
 imutils>=0.5.3
 pyserial==3.4
-mxnet==1.5.0
+mxnet==1.9.1
 imgaug==0.2.9
